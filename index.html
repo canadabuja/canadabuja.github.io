@@ -303,13 +303,13 @@ function result(report){
   const W=320,H=70,max=b[3]*1.5,X=v=>16+Math.min(v,max)/max*(W-32);
   const ticks=[[b[0],'하위 25%'],[b[1],'중간'],[b[2],'상위 25%'],[b[3],'상위 10%']];
   cmp=`<div class="card"><h2>캐나다 사람들과 비교하면</h2>
-   <div class="big">같은 나이대 중<br>소득 <em>상위 약 ${top}%</em></div>
-   <div style="overflow-x:auto"><svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="같은 나이대 소득 분포에서 내 위치">
+   <div class="big">같은 나이대 중<br>소득 <em${report?'':' class="blurtxt"'}>상위 약 ${report?top:'??'}%</em></div>
+   <div style="overflow-x:auto${report?'':';filter:blur(6px);pointer-events:none;user-select:none'}"><svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="같은 나이대 소득 분포에서 내 위치">
     <line x1="16" y1="30" x2="${W-16}" y2="30" stroke="var(--line)" stroke-width="8" stroke-linecap="round"/>
     ${ticks.map(t=>`<line x1="${X(t[0])}" y1="22" x2="${X(t[0])}" y2="38" stroke="var(--muted)" stroke-width="2"/><text x="${X(t[0])}" y="56" text-anchor="middle">${t[1]}</text>`).join('')}
     <circle cx="${X(inc)}" cy="30" r="9" fill="var(--accent)" stroke="var(--fg)" stroke-width="2"/><text x="${X(inc)}" y="12" text-anchor="middle" style="fill:var(--fg);font-weight:700">나</text>
    </svg></div>
-   <p class="fine">같은 나이대 중간 소득은 $${b[1].toLocaleString()}이에요. 캐나다 통계청 2023년 납세자 자료(개인 세전 총소득) 기준이고, 중간값 외의 구간은 추정치예요.</p></div>`;
+   ${report?'':'<p class="fine"><b>내 정확한 위치는 상세 리포트에서 볼 수 있어요.</b></p>'}<p class="fine">같은 나이대 중간 소득은 $${b[1].toLocaleString()}이에요. 캐나다 통계청 2023년 납세자 자료(개인 세전 총소득) 기준이고, 중간값 외의 구간은 추정치예요.</p></div>`;
  }
  if(pick[Q.findIndex(q=>q[1].startsWith('신용카드 대금'))]===0) cmp+=`<div class="card"><h2>이 습관은 상위권이에요</h2><p>카드를 매달 전액 갚는 습관, 생각보다 흔하지 않아요. 캐나다인 <b>4명 중 1명</b>은 카드 최소 금액만 갚을 거라고 답했어요.</p><p class="fine">Equifax Canada 조사, 2026</p></div>`;
 

@@ -93,6 +93,18 @@ input[type=checkbox]{width:20px;height:20px;margin-top:3px;accent-color:var(--ac
 .blur,.blurtxt{filter:blur(5px);user-select:none;-webkit-user-select:none;pointer-events:none}
 .locked{position:relative;max-height:220px;overflow:hidden;margin-top:6px}
 .locked:after{content:"";position:absolute;inset:auto 0 0 0;height:90px;background:linear-gradient(transparent,var(--panel))}
+.nw{white-space:nowrap}.card.hl .big{font-size:30px}.card.hl{border:1.5px solid var(--accent)}
+.kpis{display:grid;grid-template-columns:1fr 1fr;gap:10px}.kpis div{background:var(--bg);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:4px}.kpis span{font-size:12px;color:var(--muted)}.kpis b{font-size:20px}.kpis .up{color:#3ccf7a}.kpis .dn{color:var(--accent)}
+.rbars,.abars{display:flex;flex-direction:column;gap:8px}
+.rb,.ab{display:grid;grid-template-columns:96px 1fr 84px;align-items:center;gap:8px;font-size:13px;position:relative}
+.rb .rl,.ab .al{color:var(--muted)}.rb b,.ab b{text-align:right;font-size:13px}
+.rt,.at{height:12px;background:var(--line);border-radius:6px;position:relative;overflow:visible}
+.rt i,.at i{position:absolute;left:0;top:0;bottom:0;border-radius:6px;background:var(--muted);opacity:.55}
+.rb.me .rt i,.ab.me .at i{background:var(--accent);opacity:1}.rb.me .rl,.ab.me .al,.rb.me b,.ab.me b{color:var(--fg);font-weight:800}
+.rb em{font-style:normal;margin-left:2px;font-size:11px;font-weight:800;color:var(--accent)}
+.at s{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--fg);text-decoration:none}
+.mix{background:var(--bg);border-left:3px solid var(--accent);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:6px}.mix span{font-size:14px;color:var(--muted);line-height:1.6}.mix .gtag{font-size:12px;color:var(--fg);font-weight:700}
+.nums{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}.nums li{display:flex;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid var(--line);font-size:14px}.nums li span{color:var(--muted)}.nums li:last-child{border:0}
 .unlock{display:flex;flex-direction:column;gap:6px;align-items:flex-start;margin-top:12px;padding:16px;border:1px solid var(--line);border-radius:12px;background:var(--bg)}
 .unlock span{font-size:13px;color:var(--muted)}.unlock .primary{margin-top:6px;width:100%}
 </style>
@@ -138,11 +150,15 @@ const Q=[
  ['invest','내가 투자한 상품의 1년 수수료(MER)가 얼마인지 아세요?','',[['네, 대부분 연 0.5% 미만이에요',4],['대략은 알아요',3],['은행 직원이 추천한 펀드라 잘 몰라요',1,'bankfund'],['몰라요',0],['투자하는 상품이 없어요',0]]],
  ['invest','투자한 게 한 달 만에 -30%가 되면 어떻게 하시겠어요?','',[['계획대로 계속 사요. 오히려 더 사기도 해요',4],['팔지 않고 그냥 기다려요',3],['불안해서 일부 팔아요',1],['다 팔고 나와요',0],['투자를 안 해서 잘 모르겠어요',1]]]];
 const PROFILE=[
- ['age','나이가 어떻게 되세요?',[['24세 이하',null],['25~34세','25-34'],['35~44세','35-44'],['45~54세','45-54'],['55~64세','55-64'],['65세 이상',null]]],
+ ['age','나이가 어떻게 되세요?',[['24세 이하','15-24'],['25~34세','25-34'],['35~44세','35-44'],['45~54세','45-54'],['55~64세','55-64'],['65세 이상','65+']]],
  ['inc','본인의 1년 소득(세금 떼기 전)은 어느 정도세요?',[['$30,000 미만',22000],['$30,000~45,000',37500],['$45,000~60,000',52500],['$60,000~80,000',70000],['$80,000~100,000',90000],['$100,000~150,000',125000],['$150,000 이상',180000],['답하지 않을게요',null]]],
  ['yrs','캐나다에 사신 지 얼마나 되셨어요?',[['1년 미만','new'],['1~3년','new'],['3~5년','mid'],['5~10년','long'],['10년 이상','long']]]];
-// 캐나다 통계청 납세자 자료(2023) 개인 세전 총소득: 25·50·75·90번째 백분위. 중위값은 공개 수치, 나머지는 추정(샘플).
-const BANDS={'25-34':[25000,50800,75000,110000],'35-44':[33000,63300,96000,142000],'45-54':[33000,64500,102000,150000],'55-64':[24000,52300,86000,139000]};
+// 캐나다 통계청 표 11-10-0008-01(2023): 나이대별로 소득이 각 기준 이상인 사람 비율(%). 중간값은 표 11-10-0239-01(2023).
+const RUNG=[0,25000,35000,50000,75000,100000,150000,200000,250000];
+const SHARE={'15-24':[100,36,22,10,3,1,0.4,0.2,0.1],'25-34':[100,76,65,48,25,12,3,1,0.6],'35-44':[100,81,74,61,39,23,8,3,1.5],'45-54':[100,81,74,62,41,26,10,5,3],'55-64':[100,74,65,51,31,19,8,4,2],'65+':[100,74,51,34,16,8,3,2,1]};
+const MED={'15-24':16000,'25-34':50800,'35-44':63300,'45-54':64500,'55-64':52300,'65+':38500};
+const AGEN={'15-24':'24세 이하','25-34':'25~34세','35-44':'35~44세','45-54':'45~54세','55-64':'55~64세','65+':'65세 이상'};
+const INCR=[[0,30000],[30000,45000],[45000,60000],[60000,80000],[80000,100000],[100000,150000],[150000,null]];
 const TYPES={
  '111':['','균형 잡힌 무스','쓰는 것, 모으는 것, 굴리는 것까지 고르게 챙기는 사람이에요.','지금 습관이 이미 큰 자산이에요. 1년에 한 번 계좌와 수수료만 점검하면 돼요.'],
  '110':['','차곡차곡 비버','쓰기 전에 먼저 모으고 빚도 잘 관리하는 사람이에요.','돈은 안전한데 일을 안 하고 있어요. 모은 돈 일부를 TFSA 투자로 옮겨 볼 때예요.'],
@@ -253,11 +269,11 @@ function analyzing(){
   else setTimeout(result,gap)};
  tick();
 }
-function pct(x,b){
- const pts=[[0,0],[b[0],25],[b[1],50],[b[2],75],[b[3],90]];
- if(x>=b[3]) return Math.min(99,90+Math.log2(x/b[3])*8);
- for(let k=1;k<pts.length;k++){const [x0,p0]=pts[k-1],[x1,p1]=pts[k];if(x<=x1){if(x0===0)return p1*x/x1;return p0+(p1-p0)*Math.log(x/x0)/Math.log(x1/x0)}}
-}
+function topShare(x,age){const sh=SHARE[age];if(x>=RUNG[8])return Math.max(0.5,sh[8]*RUNG[8]/x);
+ for(let k=1;k<RUNG.length;k++){if(x<=RUNG[k]){const t=(x-RUNG[k-1])/(RUNG[k]-RUNG[k-1]);return sh[k-1]+(sh[k]-sh[k-1])*t}}}
+const rnd=v=>v<10?Math.max(1,Math.round(v)):Math.round(v/5)*5;
+const posTxt=v=>v<=50?`상위 약 ${rnd(v)}%`:`하위 약 ${rnd(100-v)}%`;
+const money=v=>'$'+Math.round(v).toLocaleString();
 const SHEET_URL='https://script.google.com/macros/s/AKfycbzYkJXNhViin3il21cdpK13AJY2rJXiRUgFBkYQdnn8HLKHlAuYam_PoRn2qMPrcWqwwA/exec';
 function saveRecord(rec){if(!SHEET_URL)return;try{fetch(SHEET_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify(rec)}).catch(()=>{})}catch(e){}}
 
@@ -298,18 +314,40 @@ function result(report){
  const notes=flags.sort((a,b)=>(b==='deficit')-(a==='deficit')).map(f=>FLAGS[f]);
  if(prof.yrs==='new')notes.unshift('<b>캐나다에 온 지 3년이 안 됐어요.</b> 지금 만드는 신용 기록과 TFSA 한도 확인이 앞으로 몇 년을 좌우해요. 1단계부터 순서대로 보시면 놓치는 게 없어요.');
  let cmp='';
+ let cmpTop='';
  if(prof.age&&prof.inc){
-  const b=BANDS[prof.age],inc=prof.inc,p=Math.round(pct(inc,b)),top=Math.max(1,Math.round((100-p)/5)*5)||1;
-  const W=320,H=70,max=b[3]*1.5,X=v=>16+Math.min(v,max)/max*(W-32);
-  const ticks=[[b[0],'하위 25%'],[b[1],'중간'],[b[2],'상위 25%'],[b[3],'상위 10%']];
-  cmp=`<div class="card"><h2>캐나다 사람들과 비교하면</h2>
-   <div class="big">같은 나이대 중<br>소득 <em${report?'':' class="blurtxt"'}>상위 약 ${report?top:'??'}%</em></div>
-   <div style="overflow-x:auto${report?'':';filter:blur(6px);pointer-events:none;user-select:none'}"><svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="같은 나이대 소득 분포에서 내 위치">
-    <line x1="16" y1="30" x2="${W-16}" y2="30" stroke="var(--line)" stroke-width="8" stroke-linecap="round"/>
-    ${ticks.map(t=>`<line x1="${X(t[0])}" y1="22" x2="${X(t[0])}" y2="38" stroke="var(--muted)" stroke-width="2"/><text x="${X(t[0])}" y="56" text-anchor="middle">${t[1]}</text>`).join('')}
-    <circle cx="${X(inc)}" cy="30" r="9" fill="var(--accent)" stroke="var(--fg)" stroke-width="2"/><text x="${X(inc)}" y="12" text-anchor="middle" style="fill:var(--fg);font-weight:700">나</text>
-   </svg></div>
-   ${report?'':'<p class="fine"><b>내 정확한 위치는 상세 리포트에서 볼 수 있어요.</b></p>'}<p class="fine">같은 나이대 중간 소득은 $${b[1].toLocaleString()}이에요. 캐나다 통계청 2023년 납세자 자료(개인 세전 총소득) 기준이고, 중간값 외의 구간은 추정치예요.</p></div>`;
+  const age=prof.age,inc=prof.inc,ts=topShare(inc,age),rg=INCR[prof.inc_n]||[inc,inc],med=MED[age];
+  const rgTxt=rg[1]?`${money(rg[0])}~${money(rg[1])}`:`${money(rg[0])} 이상`;
+  const hiT=rg[1]?topShare(rg[1],age):null,loT=topShare(Math.max(rg[0],1),age);
+  const ages=Object.keys(MED),maxM=Math.max(...ages.map(a=>MED[a]),inc)*1.12,L=v=>Math.min(100,v/maxM*100);
+  const rungs=[35000,50000,75000,100000,150000];
+  const meRung=[...rungs].reverse().find(v=>inc>=v);
+  const diff=inc-med;
+  let mix;const g=tot;
+  if(ts<=25&&g<60)mix=['버는 힘은 상위권, 남기는 힘은 아직이에요','소득이 높을수록 새는 돈도 커지기 쉬워요. 지금 등급을 올리는 게 소득을 올리는 것보다 빠른 길이에요.'];
+  else if(ts<=25)mix=['잘 벌고, 잘 지키고 있어요','이제는 세금과 투자 효율이 차이를 만들어요. RRSP와 TFSA를 어떤 순서로 채울지가 다음 과제예요.'];
+  else if(ts>50&&g>=70)mix=['소득보다 습관이 앞서 있어요','같은 소득대에서 이 등급은 흔하지 않아요. 소득이 오르면 그만큼 자산이 빨리 붙을 거예요.'];
+  else if(ts>50)mix=['버는 힘과 지키는 힘, 같이 키울 때예요','소득이 많지 않을수록 새는 돈 하나가 더 크게 느껴져요. 먼저 손볼 곳 한 가지부터 시작해 보세요.'];
+  else mix=g>=70?['중간 이상 소득에, 습관도 좋아요','지금 속도를 유지하면서 투자 비중을 조금씩 늘려 볼 때예요.']:['소득은 평균 이상, 등급은 올릴 여지가 있어요','같은 소득이라도 등급이 한 단계 오르면 10년 뒤 자산이 꽤 달라져요.'];
+  const full=`<div class="card hl"><h2>같은 나이대와 비교하면</h2>
+   <div class="big">${AGEN[age]} 중<br>내 소득은 <em class="nw">${posTxt(ts)}</em></div>
+   <p class="fine" style="margin:0">답하신 소득 구간 ${rgTxt} 기준이에요.${hiT!=null?` 이 구간이면 ${posTxt(loT)}에서 ${posTxt(hiT)} 사이예요.`:''}</p>
+   <div class="kpis"><div><span>${AGEN[age]} 중간 소득</span><b>${money(med)}</b></div><div><span>중간값과 차이</span><b class="${diff>=0?'up':'dn'}">${diff>=0?'+':'−'}${money(Math.abs(diff))}</b></div></div>
+   <div class="lab">${AGEN[age]}에서 1년 소득이 이만큼 넘는 사람</div>
+   <div class="rbars">${rungs.map(v=>{const sh=SHARE[age][RUNG.indexOf(v)];return `<div class="rb${v===meRung?' me':''}"><span class="rl">$${v/1000}k 이상${v===meRung?' <em>나</em>':''}</span><span class="rt"><i style="width:${Math.max(2,sh)}%"></i></span><b>${sh<1?'1% 미만':Math.round(sh)+'%'}</b></div>`}).join('')}</div>
+   <div class="lab">다른 나이대였다면?</div>
+   <div class="abars">${ages.map(a=>`<div class="ab${a===age?' me':''}"><span class="al">${AGEN[a]}</span><span class="at"><i style="width:${L(MED[a])}%"></i><s style="left:${L(inc)}%"></s></span><b>${posTxt(topShare(inc,a))}</b></div>`).join('')}</div>
+   <p class="fine" style="margin:0">막대는 나이대별 중간 소득, 세로선은 내 소득이에요.</p>
+   <div class="mix"><b>${mix[0]}</b><span>${mix[1]}</span><span class="gtag">소득 ${posTxt(ts)} · 재무 건강 ${grade(tot)}</span></div>
+   <div class="lab">내 소득으로 보면</div>
+   <ul class="nums"><li><span>소득의 10%를 모으면</span><b>1년 ${money(inc*0.1)} · 한 달 ${money(inc*0.1/12)}</b></li><li><span>RRSP 새 한도(작년 소득의 18%)</span><b>약 ${money(Math.min(inc*0.18,33810))}</b></li><li><span>TFSA 2026년 새 한도</span><b>$7,000</b></li></ul>
+   <p class="fine" style="margin:0">계산은 답하신 소득 구간의 가운데 값(${money(inc)})으로 했어요. RRSP는 2026년 최대 $33,810이고, 회사 연금이 있으면 줄어들어요. 실제 한도는 CRA My Account에서 확인할 수 있어요.</p>
+   <p class="fine" style="margin:0">출처: 캐나다 통계청 표 11-10-0008-01, 11-10-0239-01(2023년, 개인 세전 총소득). 소득 구간 안에서는 고르게 퍼져 있다고 보고 추정했어요.</p></div>`;
+  const tease=`<div class="card hl"><h2>나이대 소득 비교 <span class="cnt">상세 리포트</span></h2>
+   <div class="big">${AGEN[age]} 중<br>내 소득은 <em class="blurtxt nw">상위 약 ??%</em></div>
+   <div class="locked" style="max-height:170px"><div class="blur" aria-hidden="true"><div class="rbars">${rungs.map(v=>`<div class="rb"><span class="rl">$00k 이상</span><span class="rt"><i style="width:${30+((v/1000)%40)}%"></i></span><b>00%</b></div>`).join('')}</div></div></div>
+   <div class="unlock"><b>내 정확한 소득 위치는 상세 리포트에서 볼 수 있어요</b><span>나이대 안 내 위치 · 다른 나이대였다면? · 소득 대비 재무 건강 · 내 소득에 맞는 저축·RRSP 숫자</span><button class="primary" type="button" onclick="document.getElementById('f').scrollIntoView({behavior:'smooth',block:'center'});setTimeout(()=>document.getElementById('email').focus(),400)">무료 상세 리포트 받기 →</button></div></div>`;
+  if(report)cmpTop=full;else cmp=tease;
  }
  if(pick[Q.findIndex(q=>q[1].startsWith('신용카드 대금'))]===0) cmp+=`<div class="card"><h2>이 습관은 상위권이에요</h2><p>카드를 매달 전액 갚는 습관, 생각보다 흔하지 않아요. 캐나다인 <b>4명 중 1명</b>은 카드 최소 금액만 갚을 거라고 답했어요.</p><p class="fine">Equifax Canada 조사, 2026</p></div>`;
 
@@ -334,6 +372,7 @@ function result(report){
   <p>${T[2]}</p>
   <p class="insight">${T[3]}</p>
  </div>
+ ${cmpTop}
  <div class="card"><h2>분야별 상태</h2>${areasHtml}<p class="fine" style="margin:4px 0 0">등급 기준: A+ 90점 이상 · A 80 · B+ 70 · B 60 · C+ 50 · C 40 · D 40점 미만</p></div>
  ${detail}
  ${notes.length?(report?`<div class="card"><h2>내 답에서 보이는 것</h2><ul class="notes">${notes.map(n=>`<li>${n}</li>`).join('')}</ul></div>`:`<div class="card"><h2>내 답에서 보이는 것 <span class="cnt">${notes.length}개</span></h2><ul class="notes"><li>${notes[0].replace(/<\/b>[\s\S]*$/,'</b>')}<span class="blurtxt"> ${notes[0].replace(/^[\s\S]*?<\/b>/,'')}</span></li></ul>${notes.length>1?`<div class="locked"><ul class="notes blur" aria-hidden="true">${notes.slice(1).map(n=>`<li>${n}</li>`).join('')}</ul></div>`:''}<div class="unlock"><b>전체 내용은 상세 리포트에서 볼 수 있어요</b><span>내 답에서 보이는 것 ${notes.length}개 · 분야별 할 일 · 30일 계획</span><button class="primary" type="button" onclick="document.getElementById('f').scrollIntoView({behavior:'smooth',block:'center'});setTimeout(()=>document.getElementById('email').focus(),400)">무료 상세 리포트 받기 →</button></div></div>`):''}

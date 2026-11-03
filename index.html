@@ -84,6 +84,17 @@ input[type=checkbox]{width:20px;height:20px;margin-top:3px;accent-color:var(--ac
 .lab{font-size:12px;font-weight:800;color:var(--accent);margin:12px 0 2px}
 .todo{margin:4px 0 0;padding-left:20px;line-height:1.7}.todo li{margin:2px 0}
 .dt a,.note a{color:var(--accent);font-weight:700}
+.gradeRow{display:flex;align-items:center;gap:18px;margin:8px 0 6px}
+.grade{font-weight:900;font-size:76px;line-height:1;letter-spacing:-.04em;color:#fff;background:var(--accent);border-radius:16px;min-width:120px;height:112px;display:flex;align-items:center;justify-content:center;padding:0 14px}
+.grade.g-Ap,.grade.g-A{background:#12b886}.grade.g-Bp,.grade.g-B{background:#f5b83d;color:#111}
+.gsub{font-size:15px;color:var(--muted);line-height:1.6}.gsub b{color:var(--fg);font-size:20px}.gsub span b{font-size:15px;color:var(--accent)}
+.pill.gp{font-size:16px;min-width:46px;text-align:center;padding:4px 10px}
+.cnt{font-size:12px;font-weight:800;color:var(--accent);background:rgba(240,66,60,.12);border-radius:999px;padding:2px 8px;vertical-align:middle;margin-left:4px}
+.blur,.blurtxt{filter:blur(5px);user-select:none;-webkit-user-select:none;pointer-events:none}
+.locked{position:relative;max-height:220px;overflow:hidden;margin-top:6px}
+.locked:after{content:"";position:absolute;inset:auto 0 0 0;height:90px;background:linear-gradient(transparent,var(--panel))}
+.unlock{display:flex;flex-direction:column;gap:6px;align-items:flex-start;margin-top:12px;padding:16px;border:1px solid var(--line);border-radius:12px;background:var(--bg)}
+.unlock span{font-size:13px;color:var(--muted)}.unlock .primary{margin-top:6px;width:100%}
 </style>
 </head>
 <body>
@@ -187,6 +198,9 @@ const enc=()=>pick.slice(0,Q.length).map(v=>v==null?'-':String(v)).join('').padE
 function dec(c){const [a,b]=c.split('.');pick=[...a].map(ch=>ch==='-'?undefined:+ch);prof={};
  ['age','inc','yrs'].forEach((k,j)=>{const ch=(b||'')[j];if(ch&&ch!=='-'){const p=PROFILE.find(x=>x[0]===k);prof[k+'_n']=+ch;prof[k]=p[2][+ch][1]}})}
 const SITE='https://canadabuja.github.io/';
+const GR=[[90,'A+'],[80,'A'],[70,'B+'],[60,'B'],[50,'C+'],[40,'C'],[0,'D']];
+const grade=pct=>GR.find(g=>pct>=g[0])[1];
+const nextUp=pct=>{const i=GR.findIndex(g=>pct>=g[0]);return i>0?[GR[i-1][1],GR[i-1][0]-pct]:null};
 
 const ids={};Q.forEach((q,n)=>{if(q[4]&&q[4].id)ids[q[4].id]=n});
 const vis=n=>{const m=Q[n]&&Q[n][4];if(!m||!m.if)return true;const v=pick[ids[m.if[0]]];return v!=null&&m.if[1].includes(v)};
@@ -254,8 +268,8 @@ function subscribe(){
  const link=SITE+'#r='+R.code;
  const show=m=>{out.hidden=false;out.innerHTML=m};
  if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(em)){show('이메일 주소를 다시 확인해 주세요.');return}
- const F={SCORE:R.tot,TYPE:R.type,WEAK:R.weak,TODO1:R.plan[0]||'',TODO2:R.plan[1]||'',TODO3:R.plan[2]||'',RLINK:link,
-  SPEND:R.sc.spend+'/'+R.cnt.spend+' '+R.lvl.spend,SAVE:R.sc.save+'/'+R.cnt.save+' '+R.lvl.save,CREDIT:R.sc.credit+'/'+R.cnt.credit+' '+R.lvl.credit,INVEST:R.sc.invest+'/'+R.cnt.invest+' '+R.lvl.invest};
+ const F={SCORE:R.gr,PTS:R.tot,TYPE:R.type,WEAK:R.weak,TODO1:R.plan[0]||'',TODO2:R.plan[1]||'',TODO3:R.plan[2]||'',RLINK:link,
+  SPEND:R.ag.spend+' · '+R.lvl.spend,SAVE:R.ag.save+' · '+R.lvl.save,CREDIT:R.ag.credit+' · '+R.lvl.credit,INVEST:R.ag.invest+' · '+R.lvl.invest};
  btn.disabled=true;btn.textContent='보내는 중…';
  // 1) 결과 리포트 메일 (요청한 1통)
  try{fetch(SHEET_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify({kind:'report',email:em,f:F})}).catch(()=>{})}catch(e){}
@@ -277,7 +291,7 @@ function result(report){
  const lvl=k=>r(k)>=.75?0:r(k)>=.45?1:2;
  const pills=[['g','튼튼'],['m','보통'],['b','점검 필요']];
  const col=['var(--good)','var(--mid)','var(--bad)'];
- const areasHtml=AREAS.map(a=>{const l=lvl(a.k);return `<div class="area"><div class="name">${a.name}</div><div class="meter"><i style="width:${r(a.k)*100}%;background:${col[l]}"></i></div><span class="pill ${pills[l][0]}">${sc[a.k]}/${cnt[a.k]}</span><div class="amsg"><b class="${pills[l][0]}" style="background:none;padding:0">${pills[l][1]}</b> · ${MSG[a.k][l]}</div></div>`}).join('');
+ const areasHtml=AREAS.map(a=>{const l=lvl(a.k);return `<div class="area"><div class="name">${a.name}</div><div class="meter"><i style="width:${r(a.k)*100}%;background:${col[l]}"></i></div><span class="pill gp ${pills[l][0]}">${grade(Math.round(r(a.k)*100))}</span><div class="amsg"><b class="${pills[l][0]}" style="background:none;padding:0">${pills[l][1]}</b> · ${MSG[a.k][l]}</div></div>`}).join('');
  const weak=[...AREAS].sort((a,b)=>r(a.k)-r(b.k));
  const recs=flags.includes('deficit')?[3,4,10]:[];weak.forEach(a=>{if(lvl(a.k)>0)a.steps.forEach(s=>{if(recs.length<3&&!recs.includes(s)&&recs.filter(x=>a.steps.includes(x)).length<2)recs.push(s)})});
  if(recs.length<3)[18,21,22].forEach(s=>{if(recs.length<3&&!recs.includes(s))recs.push(s)});
@@ -302,27 +316,28 @@ function result(report){
  const detail=report?`<div class="card"><h2>분야별 상세</h2><p class="fine">점수가 낮은 분야부터 정리했어요.</p>${weak.map((a,j)=>{const l=lvl(a.k);
    const mine=Q.map((q,n)=>q[0]===a.k&&vis(n)&&pick[n]!=null?q[3][pick[n]][0]:null).filter(Boolean);
    const st=a.steps.filter(x=>STEPS[x]).slice(0,2);
-   return `<div class="dt${j===0&&l>0?' first':''}"><div class="dh"><b>${a.name}</b>${j===0&&l>0?'<span class="flag">먼저 손볼 곳</span>':''}<span class="pill ${pills[l][0]}">${pills[l][1]} ${sc[a.k]}/${cnt[a.k]}</span></div>
+   return `<div class="dt${j===0&&l>0?' first':''}"><div class="dh"><b>${a.name}</b>${j===0&&l>0?'<span class="flag">먼저 손볼 곳</span>':''}<span class="pill gp ${pills[l][0]}">${grade(Math.round(r(a.k)*100))}</span></div>
     <div class="lab">내 답 요약</div><p class="fine">${mine.join(' · ')}</p>
     <div class="lab">왜 중요한가요</div><p>${WHY[a.k]}</p>
     <div class="lab">내가 할 일</div><ol class="todo">${TODO[a.k][l].map(t=>`<li>${t}</li>`).join('')}</ol>
     <p class="fine">관련 영상 ${st.map(x=>`<a href="${YT(STEPS[x][1])}" target="_blank" rel="noopener">${x}단계 ${STEPS[x][0]} →</a>`).join(' · ')}</p></div>`}).join('')}</div>`:'';
  const plan=weak.filter(a=>lvl(a.k)>0).slice(0,2).map(a=>TODO[a.k][lvl(a.k)][0]);
  if(plan.length<3)weak.forEach(a=>TODO[a.k][lvl(a.k)].forEach(t=>{if(plan.length<3&&!plan.includes(t))plan.push(t)}));
- window.__R={tot,type:T[1],weak:weak[0].name,plan,code:enc(),sc,cnt,lvl:Object.fromEntries(AREAS.map(a=>[a.k,pills[lvl(a.k)][1]]))};
+ window.__R={tot,gr:grade(tot),ag:Object.fromEntries(AREAS.map(a=>[a.k,grade(Math.round(r(a.k)*100))])),type:T[1],weak:weak[0].name,plan,code:enc(),sc,cnt,lvl:Object.fromEntries(AREAS.map(a=>[a.k,pills[lvl(a.k)][1]]))};
  app.innerHTML=head+`
  ${report?'<p class="fine" style="margin:0">상세 리포트</p>':''}
  <div class="card">
   <div class="fine">나의 돈 습관 유형</div>
   <div class="typename">${T[1]}</div>
-  <div class="fine">내 재무 건강 점수</div>
-  <div class="score">${tot}<small> / 100</small></div>
+  <div class="fine" style="margin-top:6px">내 재무 건강 등급</div>
+  <div class="gradeRow"><div class="grade g-${grade(tot).replace('+','p')}">${grade(tot)}</div><div class="gsub"><b>${tot}점</b> / 100<br>${nextUp(tot)?`<span>${nextUp(tot)[1]}점 더 올리면 <b>${nextUp(tot)[0]}</b></span>`:'<span>최고 등급이에요</span>'}</div></div>
   <p>${T[2]}</p>
   <p class="insight">${T[3]}</p>
  </div>
- <div class="card"><h2>분야별 상태</h2>${areasHtml}</div>
+ <div class="card"><h2>분야별 상태</h2>${areasHtml}<p class="fine" style="margin:4px 0 0">등급 기준: A+ 90점 이상 · A 80 · B+ 70 · B 60 · C+ 50 · C 40 · D 40점 미만</p></div>
  ${detail}
- ${notes.length?`<div class="card"><h2>내 답에서 보이는 것</h2><ul class="notes">${notes.map(n=>`<li>${n}</li>`).join('')}</ul></div>`:''}
+ ${notes.length?(report?`<div class="card"><h2>내 답에서 보이는 것</h2><ul class="notes">${notes.map(n=>`<li>${n}</li>`).join('')}</ul></div>`:`<div class="card"><h2>내 답에서 보이는 것 <span class="cnt">${notes.length}개</span></h2><ul class="notes"><li>${notes[0].replace(/<\/b>[\s\S]*$/,'</b>')}<span class="blurtxt"> ${notes[0].replace(/^[\s\S]*?<\/b>/,'')}</span></li></ul>${notes.length>1?`<div class="locked"><ul class="notes blur" aria-hidden="true">${notes.slice(1).map(n=>`<li>${n}</li>`).join('')}</ul></div>`:''}<div class="unlock"><b>전체 내용은 상세 리포트에서 볼 수 있어요</b><span>내 답에서 보이는 것 ${notes.length}개 · 분야별 할 일 · 30일 계획</span><button class="primary" type="button" onclick="document.getElementById('f').scrollIntoView({behavior:'smooth',block:'center'});setTimeout(()=>document.getElementById('email').focus(),400)">무료 상세 리포트 받기 →</button></div></div>`):''}
+ ${report?'':`<div class="card"><h2>분야별 상세 <span class="cnt">상세 리포트</span></h2><div class="locked"><div class="blur" aria-hidden="true">${weak.slice(0,2).map(a=>`<div class="dt"><div class="dh"><b>${a.name}</b></div><div class="lab">왜 중요한가요</div><p>${WHY[a.k]}</p><div class="lab">내가 할 일</div><ol class="todo">${TODO[a.k][lvl(a.k)].map(t=>`<li>${t}</li>`).join('')}</ol></div>`).join('')}</div></div><p class="fine" style="margin:10px 0 0">분야별로 무엇부터 바꾸면 좋을지, 이메일로 바로 보내 드려요.</p></div>`}
  ${cmp}
  <div class="card"><h2>먼저 보면 좋은 영상</h2><div class="steps">${recs.map(s=>`<a href="${YT(STEPS[s][1])}" target="_blank" rel="noopener">${s}단계 · ${STEPS[s][0]}<span>보기 →</span></a>`).join('')}</div></div>
  ${report?`<div class="card"><h2>30일 동안 내가 할 일</h2><ol class="todo">${plan.map(t=>`<li>${t}</li>`).join('')}</ol><p class="fine">3개월 뒤에 같은 테스트를 다시 해 보면 점수가 얼마나 바뀌었는지 볼 수 있어요.</p></div>`:`<div class="card"><h2>상세 리포트 받기</h2>

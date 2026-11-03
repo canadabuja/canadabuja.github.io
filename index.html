@@ -1,5 +1,12 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0d0e12">
+<meta property="og:title" content="나의 캐나다 재무 건강, 몇 점일까?">
+<meta property="og:description" content="질문 25개 · 5분. 내 점수와 돈 습관 유형, 먼저 할 일 3가지를 알려 드려요.">
 <title>나의 캐나다 재무 건강, 몇 점일까?</title>
-<meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap">
@@ -78,6 +85,8 @@ input[type=checkbox]{width:20px;height:20px;margin-top:3px;accent-color:var(--ac
 .todo{margin:4px 0 0;padding-left:20px;line-height:1.7}.todo li{margin:2px 0}
 .dt a,.note a{color:var(--accent);font-weight:700}
 </style>
+</head>
+<body>
 
 <div class="wrap" id="app"></div>
 
@@ -333,3 +342,4 @@ function result(report){
 }
 if(location.hash.startsWith('#r=')){try{dec(decodeURIComponent(location.hash.slice(3)));result(true)}catch(e){intro()}}else intro();
 </script>
+</body></html>

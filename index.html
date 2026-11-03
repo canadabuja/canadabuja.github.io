@@ -275,6 +275,7 @@ const rnd=v=>v<10?Math.max(1,Math.round(v)):Math.round(v/5)*5;
 const posTxt=v=>v<=50?`상위 약 ${rnd(v)}%`:`하위 약 ${rnd(100-v)}%`;
 const money=v=>'$'+Math.round(v).toLocaleString();
 const SHEET_URL='https://script.google.com/macros/s/AKfycbzYkJXNhViin3il21cdpK13AJY2rJXiRUgFBkYQdnn8HLKHlAuYam_PoRn2qMPrcWqwwA/exec';
+const SRC=((new URLSearchParams(location.search)).get('src')||'').replace(/[^a-z0-9_-]/gi,'').slice(0,20);
 function saveRecord(rec){if(!SHEET_URL)return;try{fetch(SHEET_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify(rec)}).catch(()=>{})}catch(e){}}
 
 // Mailchimp (가입 후 채움): 폼 action 주소의 u, id, 서버(dc)
@@ -303,7 +304,7 @@ function result(report){
  const tot=Math.round(Object.values(sc).reduce((s,v)=>s+v,0)/Object.values(cnt).reduce((s,v)=>s+v,0)*100);
  const key=((sc.spend+sc.credit)/(cnt.spend+cnt.credit)>=.65?'1':'0')+(r('save')>=.65?'1':'0')+(r('invest')>=.65?'1':'0');
  const T=TYPES[key];
- if(!report) saveRecord({v:'1',tot,type:T[1],s:Object.fromEntries(AREAS.map(a=>[a.k,sc[a.k]])),age:prof.age||'',inc:prof.inc_n??'',yrs:prof.yrs||'',a:pick.map((v,n)=>v==null?null:(n+1)+':'+v).filter(Boolean).join(' ')});
+ if(!report) saveRecord({v:'1'+(SRC?':'+SRC:''),tot,type:T[1],s:Object.fromEntries(AREAS.map(a=>[a.k,sc[a.k]])),age:prof.age||'',inc:prof.inc_n??'',yrs:prof.yrs||'',a:pick.map((v,n)=>v==null?null:(n+1)+':'+v).filter(Boolean).join(' ')});
  const lvl=k=>r(k)>=.75?0:r(k)>=.45?1:2;
  const pills=[['g','튼튼'],['m','보통'],['b','점검 필요']];
  const col=['var(--good)','var(--mid)','var(--bad)'];
